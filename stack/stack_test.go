@@ -70,11 +70,11 @@ func TestStackPushCacheEntriesCorrect(t *testing.T) {
 	s := NewStack[string]().Push("Hello").Push("World")
 
 	if s.cache["World"].String() != "[Hello]" {
-		t.Errorf("s.cache[\"World\"].String() returned %v; want [Hello]", s.String())
+		t.Errorf("s.cache[\"World\"].String() returned %v; want [Hello]", s.cache["World"].cache["Hello"].String())
 	}
 
 	if s.cache["World"].cache["Hello"].String() != "[]" {
-		t.Errorf("s.cache[\"World\"].cache[\"Hello\"].String() returned %v; want []", s.String())
+		t.Errorf("s.cache[\"World\"].cache[\"Hello\"].String() returned %v; want []", s.cache["World"].cache["Hello"].String())
 	}
 
 	if testpanic(t, func() bool {
