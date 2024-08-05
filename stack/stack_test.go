@@ -5,6 +5,15 @@ import (
 	"testing"
 )
 
+func testpanic(t *testing.T, function func() bool) bool {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("The code did not panic")
+		}
+	}()
+	return function()
+}
+
 func TestNewStackIsEmpty(t *testing.T) {
 	b := NewStack[bool]()
 	if !b.IsEmpty() {
@@ -68,12 +77,16 @@ func TestStackPushCacheEntriesCorrect(t *testing.T) {
 		t.Errorf("s.cache[\"World\"].cache[\"Hello\"].String() returned %v; want []", s.String())
 	}
 
-	if s.cache["Hello"].String() != "" {
-		t.Errorf("s.cache[\"Hello\"] returned %v; want ", s.String())
+	if testpanic(t, func() bool {
+		return s.cache["Hello"].String() != ""
+	}) {
+		t.Errorf("s.cache[\"Hello\"] returned %v; expected panic", s.cache["Hello"])
 	}
 
-	if s.cache["World"].cache["World"].String() != "" {
-		t.Errorf("s.cache[\"World\"].cache[\"World\"] returned %v; want ", s.String())
+	if testpanic(t, func() bool {
+		return s.cache["World"].cache["World"].String() != ""
+	}) {
+		t.Errorf("s.cache[\"World\"].cache[\"World\"] returned %v; expected panic ", s.String())
 	}
 }
 
@@ -147,7 +160,7 @@ func TestPushSameKeyTwice(t *testing.T) {
 	// get the top elem
 	elem := s.TopOrElse(func() interface{} { return e })
 	if elem != "World" {
-		t.Errorf("Got %v; expected World", s.String())
+		t.Errorf("Got %v; expected World", elem)
 	}
 
 	// pop an elem
@@ -158,7 +171,7 @@ func TestPushSameKeyTwice(t *testing.T) {
 	// get the top elem
 	elem = s.TopOrElse(func() interface{} { return e })
 	if elem != "World" {
-		t.Errorf("Got %v; expected World", s.String())
+		t.Errorf("Got %v; expected World", elem)
 	}
 
 	// pop an elem
@@ -168,7 +181,7 @@ func TestPushSameKeyTwice(t *testing.T) {
 	}
 	elem = s.TopOrElse(func() interface{} { return e })
 	if elem != "Hello" {
-		t.Errorf("Got %v; expected Hello", s.String())
+		t.Errorf("Got %v; expected Hello", elem)
 	}
 }
 
@@ -189,7 +202,9 @@ func TestStackPopOrElseCacheEntriesCorrect(t *testing.T) {
 		t.Errorf("s.cache[\"Hello\"].String() returned %v; want [Hello]", stack.cache["Hello"].String())
 	}
 
-	if stack.cache["World"].String() != "" {
-		t.Errorf("s.cache[\"World\"].String() returned %v; want []", stack.cache["World"].String())
+	if testpanic(t, func() bool {
+		return stack.cache["World"].String() != ""
+	}) {
+		t.Errorf("s.cache[\"World\"].String() returned %v; want []", stack.cache)
 	}
 }

@@ -39,13 +39,13 @@ func NewStack[T comparable]() stack[T] {
 // returns new stack on element push
 // previous stack cache becomes new stack cache
 func newStackOnElem[T comparable](elem T, self stack[T]) stack[T] {
-	return stack[T]{cache: self.cache,
+	return stack[T]{cache: make(map[T]stack[T]),
 		matchFunc: func(onEmpty func() interface{}, onElem func(T, stack[T]) interface{}) interface{} {
 			return onElem(elem, self)
 		}}
 }
 
-// match function for push
+// match function for top, pop and isEmpty operations
 //
 // Params:
 //   - onEmpty() interface{}: Function to exec on empty stack. R type of object to return on error.
@@ -102,7 +102,8 @@ func (s stack[T]) TopOrElse(onEmpty func() interface{}) interface{} {
 // otherwise return result from onEmpty
 func (s stack[T]) PopOrElse(onEmpty func() interface{}) interface{} {
 	return match(onEmpty, func(e T, t stack[T]) interface{} {
-		return t.cache[e]
+		delete(t.cache, e)
+		return t
 	}, s)
 }
 
